@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/3.3.7/css/bootstrap.css">
+  <script type="text/javascript" src="https://lib.baomitu.com/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript" src="https://lib.baomitu.com/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://lib.baomitu.com/bignumber.js/9.0.0/bignumber.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.3.2/bootbox.min.js"></script>
+</head>
+<body>
+    <div class="container">
+      <div class="jumbotron">
+        <p><h3 class="text-center">当前收益</h3></p>
+        <p><h1 class="text-center" id="n_amount"></h1></p>
+        <table class="table">
+            <thead class="text-center">
+              <td>历史收益</td>
+              <td>总金额</td>
+              <td>年化率</td>
+            </thead>
+            <tbody class="text-center">
+              <tr>
+                <td class="total_gains"></td>
+                <td class="total_amount"></td>
+                <td class="rate_y">16.4%</td>
+              </tr>
+            </tbody>
+        </table>
+      </div>
+      <div class="row">
+        <table class="table table-striped">
+            <thead class="text-center table-responsive">
+              <td>日期</td>
+              <td>变化</td>
+              <td>操作</td>
+            </thead>
+            <tbody class="text-center" id="posit">
+            </tbody>
+        </table>
+      </div>
+    </div>
+    <nav class="navbar navbar-default navbar-fixed-bottom" style="background:white;">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-6 col-xs-6">
+          <p>
+            <button type="button" class="btn btn-info btn-lg btn-block" id="withdraw">转出</button>
+          </p>
+          </div>
+          <div class="col-sm-6 col-xs-6">
+          <p>
+            <button type="button" class="btn btn-info btn-lg btn-block" id="dprofit">转入</button>
+          </p>
+          </div>
+        </div>
+      </div>
+    </nav>
+</body>
+<script type="text/javascript">
+    var abi =[
+            	{
+            		"constant": false,
+            		"inputs": [
+            			{
+            				"internalType": "uint256",
+            				"name": "amount",
+            				"type": "uint256"
+            			}
+            		],
+            		"name": "withdraw",
+            		"outputs": [],
+            		"payable": false,
+            		"stateMutability": "nonpayable",
+            		"type": "function"
+            	},
+            	{
+            		"constant": true,
+            		"inputs": [
+            			{
+            				"internalType": "address",
+            				"name": "customer",
+            				"type": "address"
+            			}
+            		],
+            		"name": "stats",
+            		"outputs": [
+            			{
+            				"internalType": "uint256",
+            				"name": "",
+            				"type": "uint256"
+            			},
+            			{
+            				"internalType": "uint256",
+            				"name": "",
+            				"type": "uint256"
+            			},
+            			{
+            				"internalType": "uint256",
+            				"name": "",
+            				"type": "uint256"
+            			},
+            			{
+            				"internalType": "uint256",
+            				"name": "",
+            				"type": "uint256"
+            			},
+            			{
+            				"internalType": "uint256",
+            				"name": "",
+            				"type": "uint256"
+            			}
+            		],
+            		"payable": false,
+            		"stateMutability": "view",
+            		"type": "function"
+            	},
+            	{
+            		"constant": false,
+            		"inputs": [],
+            		"name": "deposit",
+            		"outputs": [],
+            		"payable": true,
+            		"stateMutability": "payable",
+            		"type": "function"
+            	},
+            	{
+            		"anonymous": false,
+            		"inputs": [
+            			{
+            				"indexed": true,
+            				"internalType": "address",
+            				"name": "customer",
+            				"type": "address"
+            			},
+            			{
+            				"indexed": false,
+            				"internalType": "uint256",
+            				"name": "value",
+            				"type": "uint256"
+            			},
+            			{
+            				"indexed": false,
+            				"internalType": "uint256",
+            				"name": "time",
+            				"type": "uint256"
+            			}
+            		],
+            		"name": "onDeposit",
+            		"type": "event"
+            	},
+            	{
+            		"anonymous": false,
+            		"inputs": [
+            			{
+            				"indexed": true,
+            				"internalType": "address",
+            				"name": "customer",
+            				"type": "address"
+            			},
+            			{
+            				"indexed": false,
+            				"internalType": "uint256",
+            				"name": "value",
+            				"type": "uint256"
+            			},
+            			{
+            				"indexed": false,
+            				"internalType": "uint256",
+            				"name": "time",
+            				"type": "uint256"
+            			}
+            		],
+            		"name": "onWithdraw",
+            		"type": "event"
+            	},
+            	{
+            		"anonymous": false,
+            		"inputs": [
+            			{
+            				"indexed": true,
+            				"internalType": "address",
+            				"name": "customer",
+            				"type": "address"
+            			},
+            			{
+            				"indexed": false,
+            				"internalType": "uint256",
+            				"name": "chunk",
+            				"type": "uint256"
+            			},
+            			{
+            				"indexed": false,
+            				"internalType": "uint256",
+            				"name": "time",
+            				"type": "uint256"
+            			}
+            		],
+            		"name": "onLiquid",
+            		"type": "event"
+            	}
+            ];
+    var address = '0x836Ae008E60fE4D718e95f9D7aa27372567314A9';
+    var profitContract = web3.eth.contract(abi).at(address);
+    var data = [];
+    Date.prototype.toLocaleString = function() {
+            return (this.getMonth() + 1) + "-" + this.getDate() + " " + this.getHours() + ":" + this.getMinutes();
+        };
+    window.addEventListener('load', async () => {
+        if (window.web3.currentProvider.isMetaMask && window.ethereum) {
+            window.web3 = new Web3(ethereum);
+            try {
+                await ethereum.enable();
+                web3.eth.getAccounts(function(error,result){
+                      if(result.length > 0){
+                        web3.eth.defaultAccount = result[0];
+                      }
+                });
+            } catch (error) {
+                alert('user not allowed !')
+            }
+        }
+        profitContract.stats(web3.eth.defaultAccount,function(error,result){
+            var chunked = web3.fromWei(new BigNumber(result[0]).toNumber().toFixed(2));
+            var profits = web3.fromWei(new BigNumber(result[1]).toNumber());
+            var balance = web3.fromWei(result[2].toNumber(),'ether');
+            var fromtime = new Date(result[3].toNumber()*1000).toLocaleString();
+            $("#n_amount").text(profits);
+            $(".total_amount").html(balance);
+            $(".total_gains").html(chunked);
+            console.log(result);
+        });
+
+        var devent = profitContract.onDeposit({customer:web3.eth.defaultAccount},{fromBlock: 0, toBlock: 'latest'});
+        var wevent = profitContract.onWithdraw({customer:web3.eth.defaultAccount},{fromBlock:0,toBlock:'latest'});
+        var levent = profitContract.onLiquid({customer:web3.eth.defaultAccount},{fromBlock:0,toBlock:'latest'});
+        var p1 =  new Promise(
+            (resolve,reject)=>{devent.get(function(err,logs){
+                  $.each(logs,function(name,value) {
+                      var date = value['args']['time'].toNumber()*1000;
+                      var amount = web3.fromWei(value['args']['value'].toNumber().toFixed(2),'ether');
+                      var p_amount = '+'+amount;
+                      var str = '存款';
+                      data_str = JSON.parse('{"date":"'+date+'","p_amount":"'+p_amount+'","str":"'+str+'"}');
+                      data.push(data_str);
+                  });
+                  resolve(data);
+            });
+          });
+         var p2 = new Promise(
+             (resolve,reject)=>{wevent.get(function(err,logs){
+                   $.each(logs,function(name,value) {
+                       var date = value['args']['time'].toNumber()*1000;
+                       var amount = web3.fromWei(value['args']['value'].toNumber().toFixed(2),'ether');
+                       var p_amount = '-'+amount;
+                       var str = '取回';
+                       data_str = JSON.parse('{"date":"'+date+'","p_amount":"'+p_amount+'","str":"'+str+'"}');
+                       data.push(data_str);
+                   });
+                   resolve(data);
+             });
+           });
+         var p3 = new Promise(
+             (resolve,reject)=>{levent.get(function(err,logs){
+                   $.each(logs,function(name,value) {
+                       var date = value['args']['time'].toNumber()*1000;
+                       var amount = web3.fromWei(value['args']['chunk'].toNumber().toFixed(2),'ether');
+                       var p_amount = '+'+amount;
+                       var str = '结息';
+                       data_str = JSON.parse('{"date":"'+date+'","p_amount":"'+p_amount+'","str":"'+str+'"}');
+                       data.push(data_str);
+                   });
+                   resolve(data);
+             });
+           });
+           Promise.all([p1,p2,p3]).then(function(data){
+               var arr = data[0];
+               arr.sort(function(a,b){
+                       if(a.date>b.date) return 1 ;
+                       if(a.date<b.date) return -1 ;
+                       return 0 ;
+                }) ;
+               $.each(arr,function(name,value){
+                 var time = new Date(Number(value.date)).toLocaleString();
+                 $("#posit").prepend('<tr><td class="date">'+time+'</td><td class="amount">'+value.p_amount+'</td><td class="active">'+value.str+'</td></tr>');
+               });
+           });
+    });
+    //存款
+    $("#dprofit").click(function(){
+      bootbox.prompt({
+          size: "small",
+          title: "必须为数字!",
+          callback: function(result){
+            var patt = /[1-9]\d*|[1-9]\d*.\d*|0.\d*[1-9]\d*/;
+            if(result == '' ||  !patt.test(result)){
+              bootbox.alert('参数不能为空及只能为数字!!');
+            }else{
+              var code = {value:web3.toWei(result,'ether')};
+              profitContract.deposit.sendTransaction(code,function(err, transactionHash){
+               if(err == null){
+                  bootbox.alert('转入成功!');
+                  $(".total_amount").text(Number($(".total_amount").text())+Number(result));
+                  var date = new Date().toLocaleString();
+                  var p_amount = '+'+Number(result);
+                  $("#posit").prepend('<tr><td class="date">'+date+'</td><td class="amount">'+p_amount+'</td><td class="active">存款</td></tr>');
+                  }
+               });
+            }
+          }
+      });
+    });
+    // 取款
+    $("#withdraw").click(function(event) {
+      bootbox.prompt({
+        size:"small",
+        title:"请核对转账数量!",
+        callback:function(result){
+          var patt = /[1-9]\d*|[1-9]\d*.\d*|0.\d*[1-9]\d*/;
+          if(result == '' ||  !patt.test(result)){
+            bootbox.alert('参数不能为空且只能为数字!!');
+          } else if(Number(result) > (Number($(".total_amount").text())+Number($("total_gains").text()))){
+            bootbox.alert('您的余额不足!');
+          }else{
+            var code = web3.toWei(result,'ether');
+            profitContract.withdraw(code,function(error,transactionHash){
+              if(error == null){
+                bootbox.alert("转出成功!");
+                $(".total_amount").text(Number($(".total_amount").text())-Number(result));
+                var w_date = new Date().toLocaleString();
+                var w_amount = '-'+Number(result);
+                $("#posit").prepend('<tr><td class="date">'+w_date+'</td><td class="amount">'+w_amount+'</td><td class="">取款</td></tr>');
+              }
+            });
+          }
+        }
+      });
+    });
+</script>
+</html>
