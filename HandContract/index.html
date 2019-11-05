@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/3.3.7/css/bootstrap.css">
+  <script type="text/javascript" src="https://lib.baomitu.com/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript" src="https://lib.baomitu.com/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://lib.baomitu.com/bignumber.js/9.0.0/bignumber.js"></script>
+  <link href="./js/ie10-viewport-bug-workaround.css" rel="stylesheet">
+  <link href="./js/justified-nav.css" rel="stylesheet">
+  <script src="./js/ie-emulation-modes-warning.js"></script>
+  <script src="./js/ie10-viewport-bug-workaround.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.3.2/bootbox.min.js"></script>
+</head>
+<style media="screen">
+</style>
+<body>
+  <div class="container">
+    <!-- Jumbotron -->
+    <div class="jumbotron">
+      <h1>合约余额</h1>
+      <p><div class="input-group">
+        <h3><p id="bal"></p></h3>
+        <span class="input-group-addon" id="basic-addon1">ETH</span>
+      </div>
+      </p>
+      <div class="row">
+          <table class="table">
+            <thead>
+              <td>#</td>
+              <td>分账日期</td>
+              <td>分账数量</td>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+      </div>
+      <h5 class="page-header"></h5>
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="panel panel-default">
+            <!-- Default panel contents -->
+            <div class="panel-heading">投票详情</div>
+            <ul class="list-group" id="u"></ul>
+          </div>
+        </div>
+    </div>
+      <p><input type="button" class="btn btn-lg btn-success" id="ha" value="投票"></p>
+    </div>
+
+    <!-- Example row of columns -->
+
+</body>
+<script type="text/javascript">
+    var abi =[
+            	{
+            		"constant": false,
+            		"inputs": [],
+            		"name": "handup",
+            		"outputs": [],
+            		"payable": false,
+            		"stateMutability": "nonpayable",
+            		"type": "function"
+            	},
+            	{
+            		"constant": true,
+            		"inputs": [
+            			{
+            				"internalType": "address",
+            				"name": "addr",
+            				"type": "address"
+            			}
+            		],
+            		"name": "query",
+            		"outputs": [
+            			{
+            				"internalType": "bool",
+            				"name": "",
+            				"type": "bool"
+            			}
+            		],
+            		"payable": false,
+            		"stateMutability": "view",
+            		"type": "function"
+            	},
+            	{
+            		"constant": true,
+            		"inputs": [],
+            		"name": "auth",
+            		"outputs": [
+            			{
+            				"internalType": "bool",
+            				"name": "",
+            				"type": "bool"
+            			}
+            		],
+            		"payable": false,
+            		"stateMutability": "view",
+            		"type": "function"
+            	},
+            	{
+            		"inputs": [],
+            		"payable": false,
+            		"stateMutability": "nonpayable",
+            		"type": "constructor"
+            	},
+            	{
+            		"payable": true,
+            		"stateMutability": "payable",
+            		"type": "fallback"
+            	},
+            	{
+            		"anonymous": false,
+            		"inputs": [
+            			{
+            				"indexed": false,
+            				"internalType": "uint256",
+            				"name": "value",
+            				"type": "uint256"
+            			},
+            			{
+            				"indexed": false,
+            				"internalType": "uint256",
+            				"name": "time",
+            				"type": "uint256"
+            			}
+            		],
+            		"name": "onProfit",
+            		"type": "event"
+            	}
+            ];
+    var address = '0xc9b04765ec91d80c3436a40dd3de8d7010121120';
+    var splitContract = web3.eth.contract(abi);
+    var split = splitContract.at(address);
+    var jsonObj = {
+       "0xB40514D329Dcd8c8639102eee16941897a302341":"jinrong",
+       "0x45C7E4cd177176Bd016373724e2Ad3C3F26E70c3":"xuebao" ,
+       "0xeF29CdA52B6B3F5C72DB3DECad9a8132B98Be85C":"zhangzong",
+       "0xbe9baC46B35c5B6193811F1097cBcD13EbB61e36":"mianao",
+    };
+    Date.prototype.toLocaleString = function() {
+            return this.getFullYear() + "年" + (this.getMonth() + 1) + "月" + this.getDate() + "日 " + this.getHours() + "点" + this.getMinutes() + "分";
+        };
+    window.addEventListener('load', async () => {
+        if (window.web3.currentProvider.isMetaMask && window.ethereum) {
+            window.web3 = new Web3(ethereum);
+            try {
+                await ethereum.enable();
+                web3.eth.getAccounts(function(error,result){
+                      if(result.length > 0){
+                        web3.eth.defaultAccount = result[0];
+                      }
+                });
+            } catch (error) {
+                alert('user not allowed !')
+            }
+        }
+        window.web3.eth.getBalance(address,function(error,result){
+          if(!error){
+            var e_wei = new BigNumber(result).toNumber().toFixed(2);
+            var res = web3.fromWei(e_wei);
+            $("#bal").text(res);
+          }
+        });
+    });
+
+    var myEvent = split.onProfit({some: 'args'}, {fromBlock: 6647372, toBlock: 'latest'});
+    myEvent.get(function(error,logs){
+          for(var i=0;i<logs.length;i++){
+            var time= logs[i]['args'].time.toNumber()*1000;
+            var date_split = new Date(time).toLocaleString();
+            var eh_wei = logs[i]['args'].value.toNumber();
+            var eh_split = web3.fromWei(eh_wei);
+            $("tbody").append('<tr><td>'+(i+1)+'</td><td>'+date_split+'</td><td>'+eh_split+'ETH</td></tr>');
+          }
+    });
+    $('#ha').click(function() {
+        if(web3.eth.defaultAccount !== null){
+          split.auth(function(error,result){
+                if(result == true){
+                  split.handup(function(err,res){
+                        if(err == null){
+                          bootbox.alert("投票成功!");
+                          var num = web3.eth.defaultAccount;
+                          $('#' + num).html('已投');
+                          $('#' + num).attr('style','background-color:green');
+                          $('#ha').attr("disabled",true);
+                        }
+                  });
+                }
+          });
+        }
+    });
+    $(document).ready(function() {
+      $.each(jsonObj,function(name, value) {
+            split.query(name,function(err,res){
+                if(res == true){
+                  $('ul').append('<li class="list-group-item">'+value+'<span class="badge" style="background-color:green;" id='+name.toLowerCase()+'>已投</span></li>');
+                } else {
+                  $('ul').append('<li class="list-group-item">'+value+'<span class="badge" style="background-color:red;" id='+name.toLowerCase()+'>未投</span></li>');
+                }
+            });
+      });
+    });
+
+
+</script>
+</html>

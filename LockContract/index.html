@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/3.3.7/css/bootstrap.css">
+  <script type="text/javascript" src="https://lib.baomitu.com/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript" src="https://lib.baomitu.com/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://lib.baomitu.com/bignumber.js/9.0.0/bignumber.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.3.2/bootbox.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="jumbotron">
+      <p><h3 class="text-center">当前余额</h3></p>
+      <p><h1 class="text-center" id="n_amount"></h1></p>
+      <table class="table">
+          <thead class="text-center">
+            <td>总仓</td>
+            <td>取现</td>
+            <td>剩余</td>
+            <td>下次取现时间</td>
+          </thead>
+          <tbody class="text-center">
+            <tr>
+              <td class="total_amount"></td>
+              <td class="total_already"></td>
+              <td class="balance"></td>
+              <td class="next_time"></td>
+            </tr>
+          </tbody>
+      </table>
+    </div>
+    <div class="row">
+      <table class="table table-striped">
+          <thead class="text-center table-responsive">
+            <td>日期</td>
+            <td>变化</td>
+            <td>操作</td>
+          </thead>
+          <tbody class="text-center" id="posit">
+          </tbody>
+      </table>
+    </div>
+  </div>
+  <nav class="navbar navbar-default navbar-fixed-bottom" style="background:white;">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-6 col-xs-4">
+        <p>
+          <button type="button" class="btn btn-info btn-lg btn-block" id="withdraw">转出</button>
+        </p>
+        </div>
+        <div class="col-sm-6 col-xs-4">
+        <p>
+          <button type="button" class="btn btn-info btn-lg btn-block" id="admin">关仓</button>
+        </p>
+        </div>
+        <div class="col-sm-6 col-xs-4">
+        <p>
+          <button type="button" class="btn btn-info btn-lg btn-block" id="dprofit">存入</button>
+        </p>
+        </div>
+      </div>
+    </div>
+  </nav>
+</body>
+<script type="text/javascript">
+      var abi = [
+              	{
+              		"constant": false,
+              		"inputs": [],
+              		"name": "change",
+              		"outputs": [
+              			{
+              				"internalType": "uint256",
+              				"name": "",
+              				"type": "uint256"
+              			}
+              		],
+              		"payable": false,
+              		"stateMutability": "nonpayable",
+              		"type": "function"
+              	},
+              	{
+              		"constant": false,
+              		"inputs": [],
+              		"name": "withdraw",
+              		"outputs": [],
+              		"payable": false,
+              		"stateMutability": "nonpayable",
+              		"type": "function"
+              	},
+              	{
+              		"constant": true,
+              		"inputs": [
+              			{
+              				"internalType": "address",
+              				"name": "customer",
+              				"type": "address"
+              			}
+              		],
+              		"name": "stats",
+              		"outputs": [
+              			{
+              				"internalType": "uint256",
+              				"name": "",
+              				"type": "uint256"
+              			},
+              			{
+              				"internalType": "uint256",
+              				"name": "",
+              				"type": "uint256"
+              			},
+              			{
+              				"internalType": "uint256",
+              				"name": "",
+              				"type": "uint256"
+              			},
+              			{
+              				"internalType": "uint256",
+              				"name": "",
+              				"type": "uint256"
+              			},
+              			{
+              				"internalType": "uint256",
+              				"name": "",
+              				"type": "uint256"
+              			}
+              		],
+              		"payable": false,
+              		"stateMutability": "view",
+              		"type": "function"
+              	},
+              	{
+              		"payable": true,
+              		"stateMutability": "payable",
+              		"type": "fallback"
+              	},
+              	{
+              		"anonymous": false,
+              		"inputs": [
+              			{
+              				"indexed": true,
+              				"internalType": "address",
+              				"name": "customer",
+              				"type": "address"
+              			},
+              			{
+              				"indexed": false,
+              				"internalType": "uint256",
+              				"name": "value",
+              				"type": "uint256"
+              			},
+              			{
+              				"indexed": false,
+              				"internalType": "uint256",
+              				"name": "fromtime",
+              				"type": "uint256"
+              			}
+              		],
+              		"name": "onDeposit",
+              		"type": "event"
+              	},
+              	{
+              		"anonymous": false,
+              		"inputs": [
+              			{
+              				"indexed": true,
+              				"internalType": "address",
+              				"name": "customer",
+              				"type": "address"
+              			},
+              			{
+              				"indexed": false,
+              				"internalType": "uint256",
+              				"name": "value",
+              				"type": "uint256"
+              			},
+              			{
+              				"indexed": false,
+              				"internalType": "uint256",
+              				"name": "fromtime",
+              				"type": "uint256"
+              			}
+              		],
+              		"name": "onWithdraw",
+              		"type": "event"
+              	}
+              ];
+      var address = '0xD35bDFcE5437116b129f80E3235e62447Ed64e64';
+      var lockContract = web3.eth.contract(abi)
+      var lock = lockContract.at(address);
+      var data = [];
+      var admin = '0x49af2ff0665aC7CD9A067ca995BA2Ce278fB49D4';
+      Date.prototype.toLocaleString = function() {
+              return (this.getMonth() + 1) + "-" + this.getDate() + " " + this.getHours() + ":" + this.getMinutes();
+          };
+      window.addEventListener('load', async () => {
+          if (window.web3.currentProvider.isMetaMask && window.ethereum) {
+              window.web3 = new Web3(ethereum);
+              try {
+                  await ethereum.enable();
+                  web3.eth.getAccounts(function(error,result){
+                        if(result.length > 0){
+                          web3.eth.defaultAccount = result[0];
+                        }
+                  });
+              } catch (error) {
+                  alert('user not allowed !')
+              }
+          }
+          lock.stats(web3.eth.defaultAccount,function(error,result){
+              var total_amount = web3.fromWei(new BigNumber(result[0]).toNumber().toFixed(2),'ether');
+              var total_already = web3.fromWei(new BigNumber(result[1]).toNumber().toFixed(2),'ether');
+              var balance = web3.fromWei(new BigNumber(result[2]).toNumber().toFixed(2),'ether');
+              var time = new Date(new BigNumber(result[3]).toNumber()*1000).toLocaleString();
+              var active = new BigNumber(result[4]).toNumber();
+              $('.total_amount').text(total_amount);
+              $('.total_already').text(total_already);
+              $('.balance').text(balance);
+              $('.next_time').text(time);
+              $("#n_amount").text(balance);
+              if(active == 0 && web3.eth.defaultAccount.toLowerCase() !== admin.toLowerCase()){
+                $("#withdraw").attr("disabled",true);
+                console.log($("#admin"));
+              }else if(active == 1){
+                $("#withdraw").attr("disabled",false);
+              }
+              if(web3.eth.defaultAccount.toLowerCase() !== admin.toLowerCase()){
+                $("#admin").hide();
+              }
+          });
+          var devent = lock.onDeposit({customer:web3.eth.defaultAccount},{fromBlock: 0, toBlock: 'latest'});
+          var wevent = lock.onWithdraw({customer:web3.eth.defaultAccount},{fromBlock:0,toBlock:'latest'});
+
+          var p1 = new Promise((resolve,reject)=>{
+            devent.get(function(err,logs){
+                  $.each(logs,function(name,value) {
+                      var date = value['args']['fromtime'].toNumber()*1000;
+                      var amount = web3.fromWei(value['args']['value'].toNumber().toFixed(2),'ether');
+                      var p_amount = '+'+amount;
+                      var str = '存入';
+                      data_str = JSON.parse('{"date":"'+date+'","p_amount":"'+p_amount+'","str":"'+str+'"}');
+                      data.push(data_str);
+                  });
+                  resolve(data);
+            });
+          });
+          var p2 = new Promise(
+              (resolve,reject)=>{wevent.get(function(err,logs){
+                    $.each(logs,function(name,value) {
+                        var date = value['args']['fromtime'].toNumber()*1000;
+                        var amount = web3.fromWei(value['args']['value'].toNumber().toFixed(2),'ether');
+                        var p_amount = '-'+amount;
+                        var str = '取现';
+                        data_str = JSON.parse('{"date":"'+date+'","p_amount":"'+p_amount+'","str":"'+str+'"}');
+                        data.push(data_str);
+                    });
+                    resolve(data);
+              });
+            });
+          Promise.all([p1,p2]).then(function(data){
+            var arr = data[0];
+            arr.sort(function(a,b){
+                    if(a.date>b.date) return 1 ;
+                    if(a.date<b.date) return -1 ;
+                    return 0 ;
+             }) ;
+            $.each(arr,function(name,value){
+              var time = new Date(Number(value.date)).toLocaleString();
+              $("#posit").prepend('<tr><td class="date">'+time+'</td><td class="amount">'+value.p_amount+'</td><td class="active">'+value.str+'</td></tr>');
+            });
+          });
+      });
+
+      $("#dprofit").click(function(event) {
+        bootbox.prompt({
+            size: "small",
+            title: "必须为数字!",
+            callback: function(result){
+              var patt = /[1-9]\d*|[1-9]\d*.\d*|0.\d*[1-9]\d*/;
+              if(result == '' ||  !patt.test(result)){
+                bootbox.alert('参数不能为空及只能为数字!!');
+              }else{
+                var amount = web3.toWei(result,'ether');
+                //var code = {from:web3.eth.defaultAccount,to:address.toLowerCase(),value:amount};
+                web3.eth.sendTransaction({from:web3.eth.defaultAccount,to:address,value:amount}, function(err, transactionHash) {
+                  if(err == null){
+                    bootbox.alert('存入成功!');
+                    var date = new Date().toLocaleString();
+                    var p_amount = '+'+Number(result);
+                    $("#posit").prepend('<tr><td class="date">'+date+'</td><td class="amount">'+p_amount+'</td><td class="active">存入</td></tr>');
+                  }
+                });
+              }
+            }
+        });
+      });
+
+      $("#withdraw").click(function(event) {
+        lock.withdraw(function(error,result){
+          if(error == null){
+            bootbox.alert('转出成功!');
+            var charge = Number($(".balance").text()) / 1000;
+            $(".total_already").text(Number($(".total_already").text())+charge);
+            $(".balance").text(Number($(".balance").text())-charge);
+            $("#n_amount").text(Number($("#n_amount").text())-charge);
+            var time =  Date.parse(new Date())/1000 + 86400;
+            var nexttime = new Date(time*1000).toLocaleString();
+            $(".nexttime").text(nexttime);
+            var date = new Date().toLocaleString();
+            var p_amount = '-'+ charge;
+            $("#posit").prepend('<tr><td class="date">'+date+'</td><td class="amount">'+p_amount+'</td><td class="active">取现</td></tr>');
+          }
+        })
+      });
+      $("#admin").click(function(event) {
+        lock.change(function(error,result){
+            if(error == null){
+              bootbox.alert('关仓成功!');
+            }
+        });
+      });
+</script>
+</html>
