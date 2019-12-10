@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/3.3.7/css/bootstrap.css">
+  <script type="text/javascript" src="https://lib.baomitu.com/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript" src="https://lib.baomitu.com/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://lib.baomitu.com/bignumber.js/9.0.0/bignumber.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.3.2/bootbox.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="jumbotron">
+      <p><h3 class="text-center">待领收益</h3></p>
+      <p><h1 class="text-center" id="n_amount"><span id="pt"></span>ETH</h1></p>
+      <table class="table">
+          <thead class="text-center">
+            <td>速度</td>
+            <td>奖励</td>
+          </thead>
+          <tbody class="text-center">
+            <tr>
+              <td class="total_amount"><span id="sd"></span>币/天</td>
+              <td class="total_already"><span id="rd"></span>币/天</td>
+            </tr>
+          </tbody>
+      </table>
+      <table class="table">
+          <thead class="text-center">
+            <td>已领</td>
+            <td>矿池</td>
+          </thead>
+          <tbody class="text-center">
+            <tr>
+              <td class="total_amount"><span id="ck">0.00</span>ETH</td>
+              <td class="total_already"><span id="pl">0.00</span>ETH</td>
+            </tr>
+          </tbody>
+      </table>
+    </div>
+    <div class="row">
+      <table class="table table-striped">
+          <thead class="text-center table-responsive">
+            <td>日期</td>
+            <td>变化</td>
+            <td>操作</td>
+          </thead>
+          <tbody class="text-center" id="posit">
+          </tbody>
+      </table>
+    </div>
+  </div>
+  <nav class="navbar navbar-default navbar-fixed-bottom" style="background:white;">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-6 col-xs-3">
+        <p>
+          <button type="button" class="btn btn-info btn-lg btn-block" id="buy">买算力</button>
+        </p>
+        </div>
+        <div class="col-sm-6 col-xs-3">
+        <p>
+          <button type="button" class="btn btn-info btn-lg btn-block" id="withdraw">领收益</button>
+        </p>
+        </div>
+        <div class="col-sm-6 col-xs-3">
+        <p>
+          <button type="button" class="btn btn-info btn-lg btn-block" id="close">毁约</button>
+        </p>
+        </div>
+        <div class="col-sm-6 col-xs-3">
+        <p>
+          <button type="button" class="btn btn-info btn-lg btn-block" id="back">取本金</button>
+        </p>
+        </div>
+      </div>
+    </div>
+  </nav>
+</body>
+<script type="text/javascript">
+  var abi = [
+          	{
+          		"anonymous": false,
+          		"inputs": [
+          			{
+          				"indexed": true,
+          				"internalType": "address",
+          				"name": "customer",
+          				"type": "address"
+          			},
+          			{
+          				"indexed": false,
+          				"internalType": "uint256",
+          				"name": "_amount",
+          				"type": "uint256"
+          			},
+          			{
+          				"indexed": false,
+          				"internalType": "uint256",
+          				"name": "time",
+          				"type": "uint256"
+          			}
+          		],
+          		"name": "onBack",
+          		"type": "event"
+          	},
+          	{
+          		"anonymous": false,
+          		"inputs": [
+          			{
+          				"indexed": true,
+          				"internalType": "address",
+          				"name": "customer",
+          				"type": "address"
+          			},
+          			{
+          				"indexed": false,
+          				"internalType": "uint256",
+          				"name": "value",
+          				"type": "uint256"
+          			},
+          			{
+          				"indexed": false,
+          				"internalType": "uint256",
+          				"name": "time",
+          				"type": "uint256"
+          			}
+          		],
+          		"name": "onBuy",
+          		"type": "event"
+          	},
+          	{
+          		"anonymous": false,
+          		"inputs": [
+          			{
+          				"indexed": true,
+          				"internalType": "address",
+          				"name": "customer",
+          				"type": "address"
+          			},
+          			{
+          				"indexed": false,
+          				"internalType": "uint256",
+          				"name": "value",
+          				"type": "uint256"
+          			},
+          			{
+          				"indexed": false,
+          				"internalType": "uint256",
+          				"name": "time",
+          				"type": "uint256"
+          			}
+          		],
+          		"name": "onWithdraw",
+          		"type": "event"
+          	},
+          	{
+          		"payable": true,
+          		"stateMutability": "payable",
+          		"type": "fallback"
+          	},
+          	{
+          		"constant": false,
+          		"inputs": [],
+          		"name": "back",
+          		"outputs": [],
+          		"payable": false,
+          		"stateMutability": "nonpayable",
+          		"type": "function"
+          	},
+          	{
+          		"constant": false,
+          		"inputs": [],
+          		"name": "buy",
+          		"outputs": [],
+          		"payable": true,
+          		"stateMutability": "payable",
+          		"type": "function"
+          	},
+          	{
+          		"constant": false,
+          		"inputs": [],
+          		"name": "close",
+          		"outputs": [],
+          		"payable": false,
+          		"stateMutability": "nonpayable",
+          		"type": "function"
+          	},
+          	{
+          		"constant": true,
+          		"inputs": [
+          			{
+          				"internalType": "address",
+          				"name": "customer",
+          				"type": "address"
+          			}
+          		],
+          		"name": "stats",
+          		"outputs": [
+          			{
+          				"internalType": "uint256",
+          				"name": "",
+          				"type": "uint256"
+          			},
+          			{
+          				"internalType": "uint256",
+          				"name": "",
+          				"type": "uint256"
+          			},
+          			{
+          				"internalType": "uint256",
+          				"name": "",
+          				"type": "uint256"
+          			},
+          			{
+          				"internalType": "uint256",
+          				"name": "",
+          				"type": "uint256"
+          			},
+          			{
+          				"internalType": "uint256",
+          				"name": "",
+          				"type": "uint256"
+          			}
+          		],
+          		"payable": false,
+          		"stateMutability": "view",
+          		"type": "function"
+          	},
+          	{
+          		"constant": true,
+          		"inputs": [
+          			{
+          				"internalType": "address",
+          				"name": "customer",
+          				"type": "address"
+          			}
+          		],
+          		"name": "status",
+          		"outputs": [
+          			{
+          				"internalType": "uint256",
+          				"name": "",
+          				"type": "uint256"
+          			}
+          		],
+          		"payable": false,
+          		"stateMutability": "view",
+          		"type": "function"
+          	},
+          	{
+          		"constant": false,
+          		"inputs": [],
+          		"name": "withdraw",
+          		"outputs": [],
+          		"payable": false,
+          		"stateMutability": "nonpayable",
+          		"type": "function"
+          	}
+          ];
+  var address = "0x7a4C87d5E08cD2B5aC09b1e84844a2d61DFe8D6F";
+  var minerContract = web3.eth.contract(abi).at(address);
+  var data = [];
+  Date.prototype.toLocaleString = function() {
+          return (this.getMonth() + 1) + "-" + this.getDate() + " " + this.getHours() + ":" + this.getMinutes();
+  };
+  window.addEventListener('load', async () => {
+      if (window.web3.currentProvider.isMetaMask && window.ethereum) {
+          window.web3 = new Web3(ethereum);
+          try {
+              await ethereum.enable();
+              web3.eth.getAccounts(function(error,result){
+                    if(result.length > 0){
+                      web3.eth.defaultAccount = result[0];
+                    }
+              });
+          } catch (error) {
+              alert('user not allowed !')
+          }
+      }
+      console.log(web3.eth.defaultAccount);
+      minerContract.stats(web3.eth.defaultAccount,function(error,result){ // 算力余额  已领收益  奖励算力  待领收益  时间
+        var balance = web3.fromWei(result[0].toNumber(),'ether');
+        var chunked = web3.fromWei(new BigNumber(result[1]).toFixed(2),'ether');
+        var reward = web3.fromWei(result[2].toNumber(),'ether');
+        var profit = web3.fromWei(result[3].toNumber(),'ether');
+        var time = new Date(result[4].toNumber()*1000).toLocaleString();
+        var pool = setPool(balance);
+        var pl = pool-chunked;
+        var speed = balance*1/1000;
+        var rd = setReward(reward);
+        rd = rd * 1/1000;
+        $("#pt").text(profit);
+        $("#sd").text(speed);
+        $("#rd").text(rd);
+        $("#ck").text(chunked);
+        $("#pl").text(pl);
+
+        console.log(balance,chunked,reward,profit);
+      });
+      var bevent = minerContract.onBuy({customer:web3.eth.defaultAccount},{fromBlock:0,toBlock:"latest"});
+      var wevent = minerContract.onWithdraw({customer:web3.eth.defaultAccount},{fromBlock:0,toBlock:"latest"});
+      var backevent = minerContract.onBack({customer:web3.eth.defaultAccount},{fromBlock:0,toBlock:"latest"});
+      var p1 =  new Promise(
+          (resolve,reject)=>{bevent.get(function(err,logs){
+                $.each(logs,function(name,value) {
+                    var date = value['args']['time'].toNumber()*1000;
+                    var amount = web3.fromWei(value['args']['value'].toNumber().toFixed(2),'ether');
+                    var p_amount = '-'+amount+'ETH';
+                    var str = '买入';
+                    data_str = JSON.parse('{"date":"'+date+'","p_amount":"'+p_amount+'","str":"'+str+'"}');
+                    data.push(data_str);
+                });
+                resolve(data);
+          });
+        });
+      var p2 = new Promise(
+          (resolve,reject)=>{wevent.get(function(err,logs){
+              $.each(logs,function(name,value){
+                var date = value['args']['time'].toNumber()*1000;
+                var amount = web3.fromWei(value['args']['value'].toNumber().toFixed(2),'ether');
+                var p_amount = '+'+amount+'ETH';
+                var str = '领取';
+                data_str = JSON.parse('{"date":"'+date+'","p_amount":"'+p_amount+'","str":"'+str+'"}');
+                data.push(data_str);
+              });
+              resolve(data);
+          });
+      });
+      var p3 = new Promise(
+        (resolve,reject)=>{backevent.get(function(err,logs){
+              $.each(logs,function(name,value){
+                var date = value['args']['time'].toNumber()*1000;
+                var amount = web3.fromWei(value['args']['_amount'].toNumber().toFixed(2),'ether');
+                var p_amount = '+'+amount+'ETH';
+                var str = '毁约';
+                data_str = JSON.parse('{"date":"'+date+'","p_amount":"'+p_amount+'","str":"'+str+'"}');
+                data.push(data_str);
+              });
+              resolve(data);
+        });
+      });
+      Promise.all([p1,p2,p3]).then(function(data){
+        var arr = data[0];
+        arr.sort(function(a,b){
+                if(a.date>b.date) return 1 ;
+                if(a.date<b.date) return -1 ;
+                return 0 ;
+         }) ;
+        $.each(arr,function(name,value){
+          var time = new Date(Number(value.date)).toLocaleString();
+          $("#posit").prepend('<tr><td class="date">'+time+'</td><td class="amount">'+value.p_amount+'</td><td class="active">'+value.str+'</td></tr>');
+        });
+      });
+
+  });
+  $("#buy").click(function(event) {
+    bootbox.prompt({
+      size:"small",
+      title:"请核对转账数量!",
+      callback:function(result){
+        var patt = /[1-9]\d*|[1-9]\d*.\d*|0.\d*[1-9]\d*/;
+        if(result == '' ||  !patt.test(result)){
+          bootbox.alert('参数不能为空且只能为数字!!');
+        }
+        var code = {value:web3.toWei(result,'ether')};
+        minerContract.buy.sendTransaction(code,function(error,transactionHash){
+            if(error == null){
+              bootbox.alert("购买成功!");
+              $("#sd").text(Number($("#sd").text())+(Number(result))*1/1000);
+              var b_amount = '-'+Number(result)+'ETH';
+              var date = new Date().toLocaleString();
+              $("#posit").prepend('<tr><td class="date">'+date+'</td><td class="amount">'+b_amount+'</td><td class="active">购买</td></tr>');
+            }
+        });
+      }
+    });
+  });
+
+  $("#withdraw").click(function(event) {
+      minerContract.withdraw(function(error,result){
+          if(error == null){
+            bootbox.alert("提现成功!");
+            var w_amount = Number($("#pt").text());
+            $("#pt").text(0);
+            $("#ck").text(Number($("#ck").text())+w_amount);
+            $("#pl").text(Number($("#pl").text())-w_amount);
+            var date = new Date().toLocaleString();
+            var p_amount = '+'+w_amount+'ETH';
+            $("#posit").prepend('<tr><td class="date">'+date+'</td><td class="amount">'+p_amount+'</td><td class="active">取收益</td></tr>');
+          }
+      });
+  });
+  $("#close").click(function(event) {
+    /* Act on the event */
+      minerContract.close(function(error,result){
+          if(error == null){
+            bootbox.alert("毁约成功,并转账");
+            $("#pt").text(0);
+            $("#sd").text(0);
+            $("#ck").text(0);
+            $("#rd").text(0);
+            $("#pl").text(0);
+          }
+      });
+  });
+
+  $("#back").click(function(event) {
+    /* Act on the event */
+    minerContract.back(function(error,result){
+      if(error == null){
+      }
+    });
+  });
+  var date = new Date();
+  console.log(date.toLocaleString());
+  function setPool(balance){
+    var pool = 0;
+    if(balance >= 2.7){
+      pool = balance*5;
+    }else if(balance >= 0.9){
+      pool = balance*4;
+    }else if(balance >= 0.3){
+      pool = balance * 3;
+    }
+    return pool;
+  }
+
+  function setReward(reward){
+    var rd = 0;
+    if(reward >= 2.7){
+      rd = reward;
+    }else if(reward >= 0.9){
+      rd = reward*0.8;
+    }else if(reward >= 0.3){
+      rd = reward*0.6;
+    }
+    return rd;
+  }
+</script>
+</html>

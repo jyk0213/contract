@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/3.3.7/css/bootstrap.css">
+  <script type="text/javascript" src="https://lib.baomitu.com/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript" src="https://lib.baomitu.com/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://lib.baomitu.com/bignumber.js/9.0.0/bignumber.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.3.2/bootbox.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="form-group">
+      <label for="exampleInputName2">邀请人</label>
+      <input type="text" class="form-control" id="agent">
+    </div>
+    <button type="submit" class="btn btn-primary" id="reg">注册</button>
+    <button type="submit" class="btn btn-primary" id="refer">查看</button>
+  </div>
+</body>
+<script type="text/javascript">
+  var abi = [
+          	{
+          		"constant": true,
+          		"inputs": [
+          			{
+          				"internalType": "address",
+          				"name": "name",
+          				"type": "address"
+          			}
+          		],
+          		"name": "refer",
+          		"outputs": [
+          			{
+          				"internalType": "address",
+          				"name": "",
+          				"type": "address"
+          			}
+          		],
+          		"payable": false,
+          		"stateMutability": "view",
+          		"type": "function"
+          	},
+          	{
+          		"constant": false,
+          		"inputs": [
+          			{
+          				"internalType": "address",
+          				"name": "user",
+          				"type": "address"
+          			}
+          		],
+          		"name": "reg",
+          		"outputs": [],
+          		"payable": false,
+          		"stateMutability": "nonpayable",
+          		"type": "function"
+          	}
+          ];
+  var address = "0x294C7E514D29f98c82C2fBf7Cd9ec41a43e48F2A";
+  var regContract = web3.eth.contract(abi).at(address);
+  Date.prototype.toLocaleString = function() {
+          return (this.getMonth() + 1) + "-" + this.getDate() + " " + this.getHours() + ":" + this.getMinutes();
+      };
+  window.addEventListener('load', async () => {
+      if (window.web3.currentProvider.isMetaMask && window.ethereum) {
+          window.web3 = new Web3(ethereum);
+          try {
+              await ethereum.enable();
+              web3.eth.getAccounts(function(error,result){
+                    if(result.length > 0){
+                      web3.eth.defaultAccount = result[0];
+                    }
+              });
+          } catch (error) {
+              alert('user not allowed !')
+          }
+      }
+      console.log(web3.eth.defaultAccount);
+  });
+  $("#reg").click(function(event) {
+    /* Act on the event */
+    var value = $("#agent").val().toLowerCase();
+    regContract.reg(value,function(error,reslut){
+        if(error == null){
+          bootbox.alert('注册成功');
+        }
+    });
+  });
+</script>
+</html>
